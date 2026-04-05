@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package leo;
+
+service SkillService {
+  rpc InvokeSkill (SkillRequest) returns (SkillResponse);
+}
+
+message SkillRequest {
+  string skill_id = 1;
+  string payload = 2; // JSON string representation of data
+  string correlation_id = 3;
+}
+
+message SkillResponse {
+  bool success = 1;
+  string result = 2; // JSON string
+  string error_message = 3;
+}

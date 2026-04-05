@@ -1,0 +1,17 @@
+{
+  "$id": "https://leo.os/schemas.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "definitions": {
+    "LogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "level": { "type": "string", "enum": ["INFO", "ERROR", "WARN", "DEBUG"] },
+        "service_name": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "required": ["timestamp", "level", "service_name", "correlation_id", "message"]
+    }
+  }
+}
