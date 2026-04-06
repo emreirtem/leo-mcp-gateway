@@ -1,9 +1,11 @@
 import sys
 import logging
 from tfs_wiki import read_tfs_wiki_page, list_tfs_projects, list_tfs_wikis, list_tfs_wiki_paths
+from observability import init_otel
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+init_otel(service_name="skill-manager")
 
 def test_skill():
     """

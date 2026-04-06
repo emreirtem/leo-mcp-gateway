@@ -27,6 +27,11 @@ You act as the **Master Agent** enforcing global architecture, delegating domain
 - **Distributed Tracing (OpenTelemetry):** 
   - All Node.js and Python modules MUST be instrumented with the OpenTelemetry (OTel) SDK.
   - Send traces via OTLP to `http://jaeger:4318`.
+  - Every service MUST initialize OTel in a single bootstrap module at process startup and avoid duplicate initialization.
+  - Every outbound HTTP call and every tool/skill execution flow MUST produce spans.
+  - Use operation names in the format `domain.action` (e.g., `tfs.get_page`, `memory.search`, `decision.classify_intent`).
+  - Every span MUST include key attributes (`service.name`, `deployment.environment`, domain identifiers such as `project`, `wiki_identifier`, `page_path` when relevant).
+  - On errors, code MUST record exceptions and mark span status as `ERROR`.
 
 ## 4. CORE MODULES
 
@@ -74,4 +79,5 @@ When building flows, expect this happy path:
 - Always check `.env` constraints (e.g., `COMMUNICATION_TYPE`) before hardcoding.
 - **API Documentation:** Use OpenAPI/Swagger natively. All Python modules MUST use **FastAPI** (for built-in Swagger via Pydantic). All Node.js modules MUST use **Fastify** with `@fastify/swagger` AND `@fastify/swagger-ui`. Endpoints must automatically generate a Swagger UI at `/docs` or `/api-docs`.
 - **Skill Documentation:** Whenever a new skill is added/created inside the `skill-manager`, you MUST generate a markdown documentation file inside `skill-manager/docs/` explaining what the skill does, its capabilities, and how to configure/test it.
+- **OTel by Default:** New code is not production-ready unless tracing is wired. Any new endpoint, queue worker, adapter call, or skill execution path MUST be traced and documented.
 
