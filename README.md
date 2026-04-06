@@ -43,3 +43,17 @@ cd contracts && ./generate_contracts.sh
 ```
 
 *(More specific compose and deployment instructions will be provided as development progresses).*
+
+## 🔎 Hybrid RAG on PostgreSQL
+
+The project now uses PostgreSQL for both retrieval modes:
+
+- **Vector retrieval:** `pgvector`
+- **Lexical retrieval:** PostgreSQL FTS (`tsvector`, `websearch_to_tsquery`, `ts_rank_cd`)
+
+Database bootstrap scripts are under `infra/postgres/init/`:
+
+- `001_extensions.sql` -> enables `vector`
+- `002_hybrid_rag.sql` -> creates `rag_chunks`, indexes, and `search_rag_hybrid(...)`
+
+`search_rag_hybrid(...)` performs hybrid retrieval by combining lexical and vector candidates with an RRF-style fusion score and returns top matching chunks.

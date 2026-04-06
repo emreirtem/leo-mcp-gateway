@@ -3,15 +3,11 @@ from requests.auth import HTTPBasicAuth
 import logging
 from typing import Dict, Any
 from urllib.parse import quote
-from opentelemetry.trace import Status, StatusCode
 
 from .config import TFSConfig
-from observability import init_otel, get_tracer
 
 logger = logging.getLogger(__name__)
 REQUEST_TIMEOUT_SECONDS = 20
-init_otel(service_name="skill-manager")
-tracer = get_tracer(__name__)
 
 class TFSWikiReader:
     """
@@ -34,36 +30,27 @@ class TFSWikiReader:
         Returns a dictionary with success status and a list of project data.
         """
         endpoint = f"{self.base_url}/{self.collection}/_apis/projects"
-        with tracer.start_as_current_span("tfs.get_projects") as span:
-            span.set_attribute("tfs.api_version", api_version)
-            span.set_attribute("tfs.endpoint", endpoint)
-            try:
-                response = requests.get(
-                    url=endpoint,
-                    params={"api-version": api_version},
-                    auth=self.auth,
-                    headers={"Accept": "application/json"},
-                    timeout=REQUEST_TIMEOUT_SECONDS
-                )
-                response.raise_for_status()
-                data = response.json()
-                projects = data.get("value", [])
-                span.set_attribute("http.status_code", response.status_code)
-                span.set_attribute("tfs.projects_count", len(projects))
+        try:
+            response = requests.get(
+                url=endpoint,
+                params={"api-version": api_version},
+                auth=self.auth,
+                headers={"Accept": "application/json"},
+                timeout=REQUEST_TIMEOUT_SECONDS
+            )
+            response.raise_for_status()
+            data = response.json()
 
-                return {
-                    "success": True,
-                    "projects": projects
-                }
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Failed to fetch projects - {str(e)}")
-                error_details = str(e)
-                if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
-                     error_details = f"HTTP {e.response.status_code}: {e.response.text}"
-                     span.set_attribute("http.status_code", e.response.status_code)
-                span.record_exception(e)
-                span.set_status(Status(StatusCode.ERROR, error_details))
-                return {"success": False, "error": error_details}
+            return {
+                "success": True,
+                "projects": data.get("value", [])
+            }
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch projects - {str(e)}")
+            error_details = str(e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                 error_details = f"HTTP {e.response.status_code}: {e.response.text}"
+            return {"success": False, "error": error_details}
 
     def get_wikis(self, project: str, api_version: str = "6.0") -> Dict[str, Any]:
         """
@@ -71,38 +58,28 @@ class TFSWikiReader:
         """
         safe_project = quote(project, safe="")
         endpoint = f"{self.base_url}/{self.collection}/{safe_project}/_apis/wiki/wikis"
-        with tracer.start_as_current_span("tfs.get_wikis") as span:
-            span.set_attribute("tfs.project", project)
-            span.set_attribute("tfs.api_version", api_version)
-            span.set_attribute("tfs.endpoint", endpoint)
-            try:
-                response = requests.get(
-                    url=endpoint,
-                    params={"api-version": api_version},
-                    auth=self.auth,
-                    headers={"Accept": "application/json"},
-                    timeout=REQUEST_TIMEOUT_SECONDS
-                )
-                response.raise_for_status()
-                data = response.json()
-                wikis = data.get("value", [])
-                span.set_attribute("http.status_code", response.status_code)
-                span.set_attribute("tfs.wikis_count", len(wikis))
+        try:
+            response = requests.get(
+                url=endpoint,
+                params={"api-version": api_version},
+                auth=self.auth,
+                headers={"Accept": "application/json"},
+                timeout=REQUEST_TIMEOUT_SECONDS
+            )
+            response.raise_for_status()
+            data = response.json()
 
-                return {
-                    "success": True,
-                    "project": project,
-                    "wikis": wikis
-                }
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Failed to fetch wikis for project '{project}' - {str(e)}")
-                error_details = str(e)
-                if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
-                     error_details = f"HTTP {e.response.status_code}: {e.response.text}"
-                     span.set_attribute("http.status_code", e.response.status_code)
-                span.record_exception(e)
-                span.set_status(Status(StatusCode.ERROR, error_details))
-                return {"success": False, "error": error_details}
+            return {
+                "success": True,
+                "project": project,
+                "wikis": data.get("value", [])
+            }
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch wikis for project '{project}' - {str(e)}")
+            error_details = str(e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                 error_details = f"HTTP {e.response.status_code}: {e.response.text}"
+            return {"success": False, "error": error_details}
 
     def get_wiki_pages_tree(self, project: str, wiki_identifier: str, api_version: str = "6.0") -> Dict[str, Any]:
         """
@@ -111,38 +88,29 @@ class TFSWikiReader:
         safe_project = quote(project, safe="")
         safe_wiki_identifier = quote(wiki_identifier, safe="")
         endpoint = f"{self.base_url}/{self.collection}/{safe_project}/_apis/wiki/wikis/{safe_wiki_identifier}/pages"
-        with tracer.start_as_current_span("tfs.get_wiki_pages_tree") as span:
-            span.set_attribute("tfs.project", project)
-            span.set_attribute("tfs.wiki_identifier", wiki_identifier)
-            span.set_attribute("tfs.api_version", api_version)
-            span.set_attribute("tfs.endpoint", endpoint)
-            try:
-                response = requests.get(
-                    url=endpoint,
-                    params={"recursionLevel": "Full", "api-version": api_version},
-                    auth=self.auth,
-                    headers={"Accept": "application/json"},
-                    timeout=REQUEST_TIMEOUT_SECONDS
-                )
-                response.raise_for_status()
-                data = response.json()
-                span.set_attribute("http.status_code", response.status_code)
+        try:
+            response = requests.get(
+                url=endpoint,
+                params={"recursionLevel": "Full", "api-version": api_version},
+                auth=self.auth,
+                headers={"Accept": "application/json"},
+                timeout=REQUEST_TIMEOUT_SECONDS
+            )
+            response.raise_for_status()
+            data = response.json()
 
-                return {
-                    "success": True,
-                    "project": project,
-                    "wiki": wiki_identifier,
-                    "pages_tree": data
-                }
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Failed to fetch wiki pages tree for '{wiki_identifier}' - {str(e)}")
-                error_details = str(e)
-                if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
-                     error_details = f"HTTP {e.response.status_code}: {e.response.text}"
-                     span.set_attribute("http.status_code", e.response.status_code)
-                span.record_exception(e)
-                span.set_status(Status(StatusCode.ERROR, error_details))
-                return {"success": False, "error": error_details}
+            return {
+                "success": True,
+                "project": project,
+                "wiki": wiki_identifier,
+                "pages_tree": data
+            }
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch wiki pages tree for '{wiki_identifier}' - {str(e)}")
+            error_details = str(e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                 error_details = f"HTTP {e.response.status_code}: {e.response.text}"
+            return {"success": False, "error": error_details}
 
     def get_page(self, project: str, wiki_identifier: str, page_path: str, api_version: str = "6.0") -> Dict[str, Any]:
         """
@@ -160,45 +128,34 @@ class TFSWikiReader:
             "includeContent": True,
             "api-version": api_version
         }
-        with tracer.start_as_current_span("tfs.get_page") as span:
-            span.set_attribute("tfs.project", project)
-            span.set_attribute("tfs.wiki_identifier", wiki_identifier)
-            span.set_attribute("tfs.page_path", page_path)
-            span.set_attribute("tfs.api_version", api_version)
-            span.set_attribute("tfs.endpoint", endpoint)
-            try:
-                response = requests.get(
-                    url=endpoint,
-                    params=params,
-                    auth=self.auth,
-                    headers={"Accept": "application/json"},
-                    timeout=REQUEST_TIMEOUT_SECONDS
-                )
+        try:
+            response = requests.get(
+                url=endpoint,
+                params=params,
+                auth=self.auth,
+                headers={"Accept": "application/json"},
+                timeout=REQUEST_TIMEOUT_SECONDS
+            )
 
-                response.raise_for_status()
-                data = response.json()
-                content = data.get("content", "")
-                span.set_attribute("http.status_code", response.status_code)
-                span.set_attribute("tfs.content_length", len(content))
+            response.raise_for_status()
+            data = response.json()
+            content = data.get("content", "")
 
-                return {
-                    "success": True,
-                    "project": project,
-                    "wiki": wiki_identifier,
-                    "path": data.get("path", page_path),
-                    "content": content,
-                    "url": data.get("remoteUrl", endpoint)
-                }
+            return {
+                "success": True,
+                "project": project,
+                "wiki": wiki_identifier,
+                "path": data.get("path", page_path),
+                "content": content,
+                "url": data.get("remoteUrl", endpoint)
+            }
 
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Failed to fetch TFS wiki page '{page_path}' - {str(e)}")
-                error_details = str(e)
-                if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
-                     error_details = f"HTTP {e.response.status_code}: {e.response.text}"
-                     span.set_attribute("http.status_code", e.response.status_code)
-                span.record_exception(e)
-                span.set_status(Status(StatusCode.ERROR, error_details))
-                return {"success": False, "error": error_details}
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to fetch TFS wiki page '{page_path}' - {str(e)}")
+            error_details = str(e)
+            if isinstance(e, requests.exceptions.HTTPError) and e.response is not None:
+                 error_details = f"HTTP {e.response.status_code}: {e.response.text}"
+            return {"success": False, "error": error_details}
 
 # Instantiate a default reader for straightforward usage
 default_reader = TFSWikiReader()

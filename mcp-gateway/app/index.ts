@@ -1,7 +1,3 @@
-// Bootstrap OpenTelemetry before anything else
-import { setupOpenTelemetry } from './adapters/otel.adapter';
-setupOpenTelemetry('mcp-gateway');
-
 import * as dotenv from 'dotenv';
 import { PinoLoggerAdapter } from './adapters/pino-logger.adapter';
 import { AuthAdapter } from './adapters/auth.adapter';

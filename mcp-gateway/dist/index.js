@@ -33,9 +33,6 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-// Bootstrap OpenTelemetry before anything else
-const otel_adapter_1 = require("./adapters/otel.adapter");
-(0, otel_adapter_1.setupOpenTelemetry)('mcp-gateway');
 const dotenv = __importStar(require("dotenv"));
 const pino_logger_adapter_1 = require("./adapters/pino-logger.adapter");
 const auth_adapter_1 = require("./adapters/auth.adapter");

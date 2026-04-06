@@ -30,23 +30,7 @@ Requires the following environment variables in your main `.env` file:
 TFS_BASE_URL=http://your-tfs-server:8080/tfs
 TFS_COLLECTION=DefaultCollection
 TFS_PAT=your_personal_access_token
-OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4318
-OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://jaeger:4318/v1/traces
-ENVIRONMENT=development
-SERVICE_VERSION=0.1.0
 ```
-
-## OpenTelemetry
-
-This skill is instrumented with OpenTelemetry and exports traces over OTLP HTTP.
-
-- Bootstrap location: `skill-manager/observability/otel.py`
-- Traced operations:
-  - `tfs.get_projects`
-  - `tfs.get_wikis`
-  - `tfs.get_wiki_pages_tree`
-  - `tfs.get_page`
-- Requests-based outbound HTTP calls are auto-instrumented.
 
 ## How to Test
 
