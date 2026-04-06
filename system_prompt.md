@@ -73,4 +73,5 @@ When building flows, expect this happy path:
 - DO NOT over-engineer abstractions, but never violate the Dependency Rule (Core depends on nothing but itself).
 - Always check `.env` constraints (e.g., `COMMUNICATION_TYPE`) before hardcoding.
 - **API Documentation:** Use OpenAPI/Swagger natively. All Python modules MUST use **FastAPI** (for built-in Swagger via Pydantic). All Node.js modules MUST use **Fastify** with `@fastify/swagger` AND `@fastify/swagger-ui`. Endpoints must automatically generate a Swagger UI at `/docs` or `/api-docs`.
+- **Skill Documentation:** Whenever a new skill is added/created inside the `skill-manager`, you MUST generate a markdown documentation file inside `skill-manager/docs/` explaining what the skill does, its capabilities, and how to configure/test it.
 
