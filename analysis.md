@@ -56,3 +56,32 @@ Yeni bir modulde endpoint, adapter veya worker ekleniyorsa:
 2. Kritik use-case akislari manuel span ile sarilmali.
 3. Hata durumlari span status `ERROR` olarak isaretlenmeli.
 4. Skill dokumani altinda izlenen operasyonlar acikca belirtilmeli.
+
+## Hybrid RAG Analizi (TFS Wiki)
+
+Bu projede TFS Wiki kaynaklari icin retrieval katmani hibrit olacak:
+
+- Semantic retrieval: PostgreSQL `pgvector`
+- Lexical retrieval: PostgreSQL FTS/BM25 (`tsvector`, `websearch_to_tsquery`, `ts_rank_cd`)
+
+### Neden PostgreSQL tek katman?
+
+- Operasyonel sadelik (tek datastore)
+- ETL ve metadata yonetiminde kolaylik
+- Citation ve source-page donusu icin dogrudan SQL ile grouping
+
+### Zorunlu chunk metadata
+
+- `chunk_id`
+- `project`
+- `wiki_identifier`
+- `page_path`
+- `sync_id`
+- `updated_at`
+
+### Sorgu modeli
+
+1. Vector top-k getir
+2. FTS/BM25 top-k getir
+3. Sonuclari RRF benzeri fusion ile birlestir
+4. Hem chunk listesini hem de `page_path` bazli tekillestirilmis kaynak listesini don

@@ -21,7 +21,7 @@ The repository represents a polyglot monorepo containing the following 6 core mo
 | 🛠️ **Skill Manager** | Python | Ajan yeteneklerinin (Tools/Skills) orkestratörü. Güvenli sandbox Terminal çalıştırmaları. |
 | 🔄 **ETL & RAG Engine** | TS / Node.js | BullMQ ile desteklenen kesintisiz veri çekme (ingestion) ve RAG vektörleştirme kuyruğu (Worker). |
 | 🧠 **Memory Service** | TS / Node.js | Ajanların kısa/uzun vadeli hafızası (Postgres & Redis). Universal Memory API (IMemoryProvider). |
-| 🎯 **Vector Service** | Python | Vektör veritabanı (Qdrant/Chroma) yönetimi ve Embedding modellerinin (HuggingFace, OpenAI) adaptörleri. |
+| 🎯 **Vector Service** | Python | PostgreSQL `pgvector` üzerinde vektör indeks yönetimi ve Embedding modellerinin (HuggingFace, OpenAI) adaptörleri. |
 | 🚦 **Decision Engine** | Python | Küçük Dil Modelleri (SLM / Llama.cpp) ile düşük gecikmeli Intent Classification (Niyet okuyucu yönlendirici). |
 
 ## 🛡️ Security & Observability

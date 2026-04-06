@@ -10,21 +10,16 @@ services:
     command: redis-server --save 60 1 --loglevel warning
 
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg16
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: leo
       POSTGRES_PASSWORD: password123
       POSTGRES_DB: leo_db
-    networks:
-      - leo-net
-
-  vector-db:
-    image: qdrant/qdrant:latest
-    ports:
-      - "6333:6333"
-      - "6334:6334"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - leo-net
 
@@ -59,6 +54,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "9999:8080"
+
+volumes:
+  pgdata:
 
 networks:
   leo-net:

@@ -32,6 +32,16 @@ You act as the **Master Agent** enforcing global architecture, delegating domain
   - Use operation names in the format `domain.action` (e.g., `tfs.get_page`, `memory.search`, `decision.classify_intent`).
   - Every span MUST include key attributes (`service.name`, `deployment.environment`, domain identifiers such as `project`, `wiki_identifier`, `page_path` when relevant).
   - On errors, code MUST record exceptions and mark span status as `ERROR`.
+- **Hybrid Retrieval Standard (RAG):**
+  - RAG MUST support hybrid retrieval using both semantic vector search and lexical search (FTS/BM25).
+  - Default retrieval datastore is PostgreSQL for both retrieval modes:
+    - Vector retrieval via `pgvector`.
+    - Lexical retrieval via PostgreSQL FTS (`tsvector`, `tsquery`, `GIN`) with BM25-style ranking strategy.
+  - Retrieval responses MUST include:
+    - matched chunks
+    - deduplicated source page list (`project`, `wiki_identifier`, `page_path`)
+    - relevance scores
+  - ETL pipelines MUST persist chunk metadata (`sync_id`, `project`, `wiki_identifier`, `page_path`, `chunk_id`) to support citation and stale cleanup.
 
 ## 4. CORE MODULES
 
@@ -60,7 +70,7 @@ You act as the **Master Agent** enforcing global architecture, delegating domain
 - **Implementation Details:** Abstract the DB layer entirely behind an `IMemoryProvider` interface that exposes `get()`, `set()`, `search()`, and `summarize()` methods.
 
 ### 📂 MODULE 5: VECTOR SERVICE (Python)
-- **Role:** Embedding generation and Vector DB management (Qdrant or ChromaDB).
+- **Role:** Embedding generation and vector indexing over PostgreSQL (`pgvector`).
 - **Implementation Details:** Treat Embedding models (HuggingFace, OpenAI) as swappable Adapters. Support "Shadow Indexing" via `sync_id` to maintain zero-downtime updates and flush stale data.
 
 ### 📂 MODULE 6: DECISION ENGINE (Python)
@@ -80,4 +90,5 @@ When building flows, expect this happy path:
 - **API Documentation:** Use OpenAPI/Swagger natively. All Python modules MUST use **FastAPI** (for built-in Swagger via Pydantic). All Node.js modules MUST use **Fastify** with `@fastify/swagger` AND `@fastify/swagger-ui`. Endpoints must automatically generate a Swagger UI at `/docs` or `/api-docs`.
 - **Skill Documentation:** Whenever a new skill is added/created inside the `skill-manager`, you MUST generate a markdown documentation file inside `skill-manager/docs/` explaining what the skill does, its capabilities, and how to configure/test it.
 - **OTel by Default:** New code is not production-ready unless tracing is wired. Any new endpoint, queue worker, adapter call, or skill execution path MUST be traced and documented.
+- **RAG Storage Directive:** Unless explicitly overridden, implement both vector and lexical retrieval on PostgreSQL (`pgvector` + FTS/BM25) before introducing a separate search engine.
 
